@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Blockchain Ticket Sales App</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.4/dist/ethers.umd.min.js"></script>
+  <!-- FIXED: include ethers so ethers.providers.Web3Provider is defined -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+<script src="app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Blockchain Ticket Sales</h2>
+
+<!-- Connect Wallet -->
+<button id="connectButton">Connect MetaMask</button>
+<p id="walletStatus">Not connected</p>
+
+<hr>
+
+<!-- Create Event -->
+<h3>Create Event</h3>
+<input id="eventName" placeholder="Event Name">
+<input id="eventCategory" placeholder="Category (Concert, Movie, etc)">
+<input id="eventPrice" type="number" placeholder="Price (in ETH)">
+<input id="totalTickets" type="number" placeholder="Total Tickets">
+<button id="createEvent">Create Event</button>
+
+<hr>
+
+<!-- Buy Tickets -->
+<h3>Buy Tickets</h3>
+<input id="eventIdBuy" type="number" placeholder="Event ID">
+<input id="ticketQuantity" type="number" placeholder="Quantity">
+<button id="buyTicket">Buy Ticket</button>
+
+<hr>
+
+<!-- Transfer Tickets -->
+<h3>Transfer Tickets</h3>
+<input id="eventIdTransfer" type="number" placeholder="Event ID">
+<input id="receiverAddress" placeholder="Receiver Address">
+<input id="transferQuantity" type="number" placeholder="Quantity">
+<button id="transferTicket">Transfer</button>
+
+<hr>
+
+<!-- Event List -->
+<h3>Available Events</h3>
+<div id="eventsList"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

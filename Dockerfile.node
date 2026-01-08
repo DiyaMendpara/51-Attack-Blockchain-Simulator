@@ -1,0 +1,46 @@
+# Dockerfile for Hardhat node and indexer services
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache curl
+
+# Copy package files
+COPY package*.json ./
+COPY indexer/package*.json ./indexer/
+
+# Install dependencies
+RUN npm install
+RUN cd indexer && npm install
+
+# Copy source code
+COPY . .
+
+# Compile contracts
+RUN npx hardhat compile
+
+# Create startup script
+RUN echo '#!/bin/sh' > /app/start-services.sh && \
+    echo 'echo "Starting Hardhat node..."' >> /app/start-services.sh && \
+    echo 'npx hardhat node --hostname 0.0.0.0 &' >> /app/start-services.sh && \
+    echo 'sleep 10' >> /app/start-services.sh && \
+    echo 'echo "Deploying contract..."' >> /app/start-services.sh && \
+    echo 'CONTRACT_ADDR=$(npx hardhat run scripts/deploy.js --network localhost | grep -o "0x[a-fA-F0-9]\{40\}")' >> /app/start-services.sh && \
+    echo 'echo "Contract deployed at: $CONTRACT_ADDR"' >> /app/start-services.sh && \
+    echo 'echo "$CONTRACT_ADDR" > /app/contract-address.txt' >> /app/start-services.sh && \
+    echo 'echo "Starting indexer..."' >> /app/start-services.sh && \
+    echo 'cd indexer && INDEXER_CONTRACT_ADDRESS=$CONTRACT_ADDR npm start &' >> /app/start-services.sh && \
+    echo 'wait' >> /app/start-services.sh && \
+    chmod +x /app/start-services.sh
+
+# Expose ports
+EXPOSE 8545 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8545 || exit 1
+
+# Start services
+CMD ["/app/start-services.sh"]

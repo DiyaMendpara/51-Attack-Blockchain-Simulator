@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain 51% Attack Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+      <style>
+        :root 
+        {
+            --primary: #5465ff;
+            --primary-dark: #3a4cdf;
+            --secondary: #03dac5;
+            --background: #121212;
+            --surface: #1e1e1e;
+            --success: #00c853;
+            --danger: #f44336;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .control-panel {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding:  1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .danger {
+            color: var(--danger);
+        }
+
+        .visualization {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .visualization {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            height: 400px;
+            position: relative;
+        }
+
+        .logs {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+
+        .log-entry:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+
+        .log-success {
+            color: var(--success);
+        }
+
+        .log-error {
+            color: var(--danger);
+        }
+
+        .blockchain-visualization {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .blocks-container {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            min-height: 150px;
+        }
+
+        .block {
+            min-width: 100px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(84, 101, 255, 0.3), rgba(3, 218, 197, 0.3));
+            border: 1px solid rgba(84, 101, 255, 0.5);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            padding: 0.75rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .block.attacker {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.3), rgba(255, 152, 0, 0.3));
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
+
+        .block-header {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .block-hash {
+            font-family: monospace;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            word-break: break-all;
+            flex-grow: 1;
+        }
+
+        .block-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            margin-top: 0.5rem;
+        }
+
+        .network-visualization {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            height: 400px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        /* small status dot */
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+            box-shadow: 0 0 6px rgba(0,0,0,0.4);
+        }
+
+        .network-canvas {
+            position : absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Animation for simulation running */
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .simulating {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Chart styles */
+        #attackChart {
+            width: 100%;
+            height: 100%;
+        }
+
+
+    /* Animate nodes with pulsing glow */
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .block {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: pop-in 0.4s ease;
+        cursor: pointer;
+    }
+
+    @keyframes pop-in {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .network-canvas-node {
+        animation: pulse 1.5s infinite;
+    }
+
+    /* Modal for block details */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: var(--surface);
+        border-radius: 8px;
+        padding: 1rem;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80%;
+        overflow: auto;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+
+    .modal h3 { margin-bottom: 0.5rem; }
+    .tx-list { margin-top: 1rem; }
+    .tx-row { padding: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: monospace; }
+
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Ethers.js for MetaMask integration -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>51% Attack Blockchain Simulation</h1>
+            <div class="simulation-status">
+                Monte Carlo , Nakkamoto & Jackknife Methods
+            </div>
+        </header>
+
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Simulation Parameters</h2>
+                <span id="status" class="simulation-status">Ready</span>
+            </div>
+
+            <!-- on-chain stats removed -->
+
+            <div class="form-group">
+                <div class="form-control">
+                    <label for="attack-power">Attacker Hash Power (%)</label>
+                    <input type="range" id="attack-power" min="10" max="90" value="49" oninput="updateAttackPower(this.value)">
+                    <div id="attack-power-value" style="text-align: center; margin-top: 0.5rem;">49%</div>
+                </div>
+
+                <div class="form-control">
+                    <label for="confirmation-blocks">Confirmation Blocks (z)</label>
+                    <input type="number" id="confirmation-blocks" min="1" max="100" value="6">
+                </div>
+
+                <div class="form-control">
+                    <label for="simulation-method">Simulation Method</label>
+                    <select id="simulation-method" , style="color: #3a4ddfb7;">
+                        <option value="monte-carlo">Monte Carlo</option>
+                        <option value="jackknife">Jackknife</option>
+                        <option value="nakamoto">Nakamoto</option>
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label for="simulation-runs">Simulation Runs</label>
+                    <input type="number" id="simulation-runs" min="100" max="10000" value="1000">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="start-btn" class="btn-primary" onclick="startSimulation()">Start Simulation</button>
+                <button id="reset-btn" class="btn-secondary" onclick="resetSimulation()">Reset</button>
+                <button id="export-btn" class="btn-secondary" onclick="exportResults()">Export Results</button>
+                <button id="export-csv-btn" class="btn-secondary" onclick="downloadServerCSV()">Download CSV (server)</button>
+            </div>
+
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- Blockchain Actions Panel (Local PoW) -->
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Blockchain Actions</h2>
+                <span id="bc-status" class="simulation-status">Idle</span>
+            </div>
+            <div class="form-group">
+                <div class="form-control">
+                    <label for="tx-sender">Sender</label>
+                    <input type="text" id="tx-sender" placeholder="alice" value="alice">
+                </div>
+                <div class="form-control">
+                    <label for="tx-recipient">Recipient</label>
+                    <input type="text" id="tx-recipient" placeholder="bob" value="bob">
+                </div>
+                <div class="form-control">
+                    <label for="tx-rating">Rating (1-5)</label>
+                    <input type="number" id="tx-rating" min="1" max="5" value="5">
+                </div>
+                <div class="form-control">
+                    <label for="tx-category">Category</label>
+                    <input type="text" id="tx-category" placeholder="category" value="simulation">
+                </div>
+                <div class="form-control">
+                    <label for="tx-amount">Amount</label>
+                    <input type="number" id="tx-amount" min="0" step="0.01" value="1">
+                </div>
+            </div>
+            <div class="button-group">
+                <!-- Submit Transaction button removed -->
+                <button class="btn-secondary" onclick="mineBlock()">Mine Block</button>
+                <button class="btn-secondary" onclick="loadChain()">Refresh Chain</button>
+                <button id="connect-wallet-btn" class="btn-primary" onclick="connectWallet()">Connect Wallet</button>
+                <input id="contract-address" class="btn-secondary" style="padding:0.5rem 1rem; border-radius:8px; min-width:220px;" placeholder="Contract address (deployed)" />
+                <button id="send-onchain-btn" class="btn-primary" onclick="sendOnChainRecord()">Send On-Chain</button>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Attack Success Probability</h3>
+                </div>
+                <div id="success-probability" class="card-value">0.00%</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Average Catch-up Blocks</h3>
+                </div>
+                <div id="avg-blocks" class="card-value">0</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Simulation Time</h3>
+                </div>
+                <div id="simulation-time" class="card-value">0.00s</div>
+            </div>
+        </div>
+
+        <div class="visualization">
+            <div class="chart-container">
+                <canvas id="attackChart"></canvas>
+            </div>
+
+            <div class="logs">
+                <h3 class="card-title" style="margin-bottom: 1rem;">Simulation Log</h3>
+                <div id="log-container">
+                    <div class="log-entry">
+                        <span class="log-time">[00:00:00]</span>
+                        <span>System ready. Configure parameters and start simulation.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="blockchain-visualization">
+            <h3 class="card-title" style="margin-bottom: 1rem;">Blockchain State </h3>
+            <div class="blocks-container" id="blocks-container">
+                <!-- Blocks will be added dynamically here -->
+            </div>
+        </div>
+
+        <!-- Cloud Management Panel -->
+        <div class="control-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Cloud Management</h2>
+                <span id="cloud-status" class="simulation-status">Checking...</span>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-control">
+                    <label for="cloud-storage-provider">Storage Provider</label>
+                    <select id="cloud-storage-provider">
+                        <option value="local">Local Storage</option>
+                        <option value="aws">AWS S3</option>
+                        <option value="azure">Azure Blob</option>
+                        <option value="gcs">Google Cloud Storage</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label for="cloud-monitoring-provider">Monitoring Provider</label>
+                    <select id="cloud-monitoring-provider">
+                        <option value="local">Local Logging</option>
+                        <option value="aws">AWS CloudWatch</option>
+                        <option value="azure">Azure Monitor</option>
+                        <option value="gcs">Google Cloud Monitoring</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="check-cloud-status-btn" class="btn-secondary" onclick="checkCloudStatus()">Check Cloud Status</button>
+                <button id="upload-to-cloud-btn" class="btn-primary" onclick="uploadToCloud()">Upload to Cloud</button>
+                <button id="download-from-cloud-btn" class="btn-secondary" onclick="downloadFromCloud()">Download from Cloud</button>
+                <button id="list-cloud-files-btn" class="btn-secondary" onclick="listCloudFiles()">List Cloud Files</button>
+            </div>
+            
+            <div class="logs" style="max-height:200px; overflow-y:auto;">
+                <div id="cloud-logs" style="font-family:monospace; font-size:0.9rem; color:var(--text);">
+                    <div style="color:var(--text-secondary);">Cloud logs will appear here...</div>
+                </div>
+            </div>
+        </div>
+
+            <div style="margin-bottom:1rem; display:flex; gap:1rem; align-items:center;">
+                <button id="refresh-onchain-btn" class="btn-secondary">Refresh On-Chain</button>
+                <label style="color:var(--text-secondary); font-size:0.9rem;">Showing latest <select id="onchain-limit" style="background:transparent;border:none;color:var(--text);"> <option>10</option><option selected>20</option><option>50</option></select> records</label>
+                <label style="margin-left:auto; display:flex; align-items:center; gap:0.5rem; color:var(--text-secondary); font-size:0.9rem;">Use indexer
+                    <input type="checkbox" id="use-indexer" style="transform:scale(1.1); margin-left:6px;" />
+                </label>
+            </div>
+
+            <div class="logs" style="max-height:300px; overflow-y:auto;">
+                <div id="onchain-list" style="font-family:monospace; font-size:0.9rem; color:var(--text);">
+                    <div style="color:var(--text-secondary);">No on-chain records loaded. Connect wallet and attach contract, then click Refresh.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="network-visualization">
+            <h3 class="card-title" style="margin-bottom: 1rem;">Network Visualization</h3>
+            <canvas id="networkCanvas" class="network-canvas"></canvas>
+        </div>
+
+        <footer>
+            <p>51% Attack Simulator | Blockchain Security Analysis with Monte Carlo & Jackknife Methods</p>
+        </footer>
+    </div>
+
+    <script>
+        // Chart initialization
+        const ctx = document.getElementById('attackChart').getContext('2d');
+        let attackChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Attack Success Probability',
+                        data: [],
+                        borderColor: '#5465ff',
+                        backgroundColor: 'rgba(84, 101, 255, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#b0b0b0'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Attacker Hash Power (%)',
+                            color: '#b0b0b0'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#b0b0b0'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Success Probability',
+                            color: '#b0b0b0'
+                        },
+                        min: 0,
+                        max: 1
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            }
+        });
+
+        // UI Updates
+        function updateAttackPower(value) {
+            document.getElementById('attack-power-value').textContent = `${value}%`;
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-${type}">${message}</span>`;
+
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Simulation logic
+        let isSimulating = false;
+
+        function startSimulation() {
+    if (isSimulating) return;
+
+    const attackPower = parseInt(document.getElementById('attack-power').value);
+    const confirmationBlocks = parseInt(document.getElementById('confirmation-blocks').value);
+    const simulationMethod = document.getElementById('simulation-method').value;
+    const simulationRuns = parseInt(document.getElementById('simulation-runs').value);
+    const startTime = performance.now();
+    // on-chain stats removed: using UI parameters only
+
+    updateBlockchainVisual(confirmationBlocks, attackPower);
+    updateNetworkVisual(attackPower);
+
+    isSimulating = true;
+    document.getElementById('status').textContent = 'Simulating...';
+    document.getElementById('start-btn').disabled = true;
+
+    addLogEntry(`Starting ${simulationMethod} simulation with ${attackPower}% attacker hash power and ${confirmationBlocks} confirmation blocks`);
+
+    fetch('http://127.0.0.1:5501/simulate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            attack_power: attackPower,
+            confirmation_blocks: confirmationBlocks,
+            runs: simulationRuns,
+            method: simulationMethod
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let successProbability = 0;
+
+        if (simulationMethod === 'monte-carlo' || simulationMethod === 'nakamoto') {
+            successProbability = data.success_probability / 100;
+            document.getElementById('success-probability').textContent = `${data.success_probability.toFixed(2)}%`;
+            document.getElementById('avg-blocks').textContent = Math.floor(confirmationBlocks * (attackPower / 50)).toString();
+        } else if (simulationMethod === 'jackknife') {
+            document.getElementById('success-probability').textContent = 'N/A';
+            document.getElementById('avg-blocks').textContent = 'N/A';
+            addLogEntry(`Jackknife estimation result: ${JSON.stringify(data.jackknife_estimation)}`);
+        }
+
+        document.getElementById('simulation-time').textContent = `${(performance.now() - startTime).toFixed(2)}s`;
+
+        if (simulationMethod === 'monte-carlo' || simulationMethod === 'nakamoto') {
+            addDataPoint(attackPower, successProbability);
+        }
+
+        if (successProbability > 0.5) {
+            addLogEntry(`Simulation complete. High attack success probability: ${(successProbability * 100).toFixed(2)}%`, 'error');
+        } else {
+            addLogEntry(`Simulation complete. Low attack success probability: ${(successProbability * 100).toFixed(2)}%`, 'success');
+        }
+
+        isSimulating = false;
+        document.getElementById('status').textContent = 'Ready';
+        document.getElementById('start-btn').disabled = false;
+    })
+    .catch(error => {
+        addLogEntry(`Simulation error: ${error.message}`, 'error');
+        isSimulating = false;
+        document.getElementById('status').textContent = 'Ready';
+        document.getElementById('start-btn').disabled = false;
+    });
+}
+
+function updateBlockchainVisual(blocks, attackerPower) {
+    const container = document.getElementById('blocks-container');
+    container.innerHTML = '';
+
+    for (let i = 1; i <= blocks; i++) {
+        const isAttacker = Math.random() < attackerPower / 100;
+        const block = document.createElement('div');
+        block.classList.add('block');
+        if (isAttacker) block.classList.add('attacker');
+
+        const hash = Math.random().toString(36).substring(2, 10);
+
+        block.innerHTML = `
+            <div class="block-header">Block #${i}</div>
+            <div class="block-hash">${hash}</div>
+            <div class="block-footer">
+                <span>${isAttacker ? 'Attacker' : 'Honest'}</span>
+                <span>⛓</span>
+            </div>
+        `;
+
+        // 🧠 Add click to show block info
+        block.addEventListener('click', () => {
+            alert(
+                `Block Details:\n\nBlock #${i}\nHash: ${hash}\nType: ${isAttacker ? 'Attacker 🔴' : 'Honest 🟢'}`
+            );
+        });
+
+        container.appendChild(block);
+    }
+}
+
+function updateNetworkVisual(attackerPower) {
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const nodes = 20;
+    const radius = 10;
+
+    for (let i = 0; i < nodes; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const isAttacker = Math.random() < attackerPower / 100;
+
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = isAttacker ? '#f44336' : '#00c853';
+        ctx.fill();
+
+        ctx.shadowColor = isAttacker ? '#f44336' : '#00c853';
+        ctx.shadowBlur = 10;
+
+        for (let j = 0; j < 3; j++) {
+            const targetX = Math.random() * canvas.width;
+            const targetY = Math.random() * canvas.height;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fillStyle = isAttacker ? '#f44336' : '#00c853';
+                ctx.shadowColor = isAttacker ? '#f44336' : '#00c853';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0; // reset after glow
+
+        }
+    }
+}
+
+function resetSimulation() {
+    document.getElementById('attack-power').value = 49;
+    document.getElementById('attack-power-value').textContent = '49%';
+    document.getElementById('confirmation-blocks').value = 6;
+    document.getElementById('simulation-method').value = 'monte-carlo';
+    document.getElementById('simulation-runs').value = 1000;
+    document.getElementById('success-probability').textContent = '0.00%';
+    document.getElementById('avg-blocks').textContent = '0';
+    document.getElementById('simulation-time').textContent = '0.00s';
+    document.getElementById('log-container').innerHTML = '';
+    attackChart.data.labels = [];
+    attackChart.data.datasets[0].data = [];
+    attackChart.update();
+    addLogEntry('Simulation reset. Configure parameters and start again.', 'info');
+}
+
+function addDataPoint(attackPower, successProbability) {
+    attackChart.data.labels.push(attackPower);
+    attackChart.data.datasets[0].data.push(successProbability);
+    attackChart.update();
+}
+
+    // Export combined results (chart data, logs, and blockchain transactions) as a single JSON file
+    async function exportResults() {
+        try {
+            document.getElementById('export-btn').disabled = true;
+            addLogEntry('Preparing export...', 'info');
+
+            // 1) Collect simulation/chart data
+            const simulation = {
+                labels: attackChart.data.labels.slice(),
+                values: attackChart.data.datasets[0].data.slice(),
+                datasetLabel: attackChart.data.datasets[0].label,
+                generated_at: new Date().toISOString(),
+            };
+
+            // 2) Collect logs
+            const logs = [];
+            const logContainer = document.getElementById('log-container');
+            Array.from(logContainer.querySelectorAll('.log-entry')).forEach(entry => {
+                const timeEl = entry.querySelector('.log-time');
+                const msgEl = entry.querySelector('span:not(.log-time)');
+                const time = timeEl ? timeEl.textContent.replace(/\[|\]/g, '') : '';
+                const message = msgEl ? msgEl.textContent : entry.textContent;
+                let type = 'info';
+                if (entry.querySelector('.log-error')) type = 'error';
+                else if (entry.querySelector('.log-success')) type = 'success';
+                logs.push({ time, message, type });
+            });
+
+            // 3) Fetch chain / transactions from API (if available)
+            let chain = null;
+            try {
+                const res = await fetch(`${API_BASE}/chain`);
+                if (res.ok) {
+                    chain = await res.json();
+                } else {
+                    chain = { error: `Failed to fetch chain: ${res.status}` };
+                }
+            } catch (e) {
+                chain = { error: e.message };
+            }
+
+            // 4) Compose export object
+            const exportObj = {
+                meta: {
+                    exported_at: new Date().toISOString(),
+                    origin: location.href,
+                },
+                simulation,
+                logs,
+                chain,
+            };
+
+            // 5) Create blob and trigger download
+            const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeTs = new Date().toISOString().replace(/[:.]/g, '-');
+            a.download = `export_results_${safeTs}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            addLogEntry('Export finished: JSON file downloaded', 'success');
+        } catch (err) {
+            addLogEntry(`Export error: ${err.message}`, 'error');
+        } finally {
+            document.getElementById('export-btn').disabled = false;
+        }
+    }
+
+function addLogEntry(message, type = 'info') {
+    const logContainer = document.getElementById('log-container');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-${type}">${message}</span>`;
+
+    logContainer.appendChild(entry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+// --- Real blockchain wiring ---
+const API_BASE = 'http://127.0.0.1:5000';
+
+async function submitTransaction() {
+    try {
+        document.getElementById('bc-status').textContent = 'Submitting transaction...';
+        const sender = document.getElementById('tx-sender').value.trim();
+        const recipient = document.getElementById('tx-recipient').value.trim();
+        const amount = parseFloat(document.getElementById('tx-amount').value);
+        const res = await fetch(`${API_BASE}/transactions/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sender, recipient, amount })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to submit transaction');
+        addLogEntry(`TX accepted: will be included in block ${data.message.match(/(\d+)/)?.[0] || '?'} `, 'success');
+        document.getElementById('bc-status').textContent = 'Transaction queued';
+        await loadChain();
+    } catch (e) {
+        addLogEntry(`TX error: ${e.message}`, 'error');
+        document.getElementById('bc-status').textContent = 'Error';
+    }
+}
+
+async function mineBlock() {
+    try {
+        document.getElementById('bc-status').textContent = 'Mining...';
+        const res = await fetch(`${API_BASE}/mine`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Mining failed');
+        addLogEntry(`Mined block #${data.block.index} with proof ${data.block.proof}`, 'success');
+        document.getElementById('bc-status').textContent = 'Mined';
+        await loadChain();
+    } catch (e) {
+        addLogEntry(`Mining error: ${e.message}`, 'error');
+        document.getElementById('bc-status').textContent = 'Error';
+    }
+}
+
+async function loadChain() {
+    try {
+        const res = await fetch(`${API_BASE}/chain`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load chain');
+        renderRealChain(data.chain);
+    } catch (e) {
+        addLogEntry(`Chain load error: ${e.message}`, 'error');
+    }
+}
+
+// loadChainStats removed because on-chain stats endpoint was removed
+
+async function downloadServerCSV() {
+    try {
+        document.getElementById('export-csv-btn').disabled = true;
+        addLogEntry('Requesting server CSV export...', 'info');
+        const res = await fetch(`${API_BASE}/export_csv`);
+        if (!res.ok) {
+            const err = await res.json().catch(()=>({error:'unknown'}));
+            throw new Error(err.error || `Server returned ${res.status}`);
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'chain_transactions.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        addLogEntry('CSV downloaded from server', 'success');
+    } catch (e) {
+        addLogEntry(`CSV export error: ${e.message}`, 'error');
+    } finally {
+        document.getElementById('export-csv-btn').disabled = false;
+    }
+}
+
+function renderRealChain(blocks) {
+    const container = document.getElementById('blocks-container');
+    container.innerHTML = '';
+    blocks.forEach((b) => {
+        const block = document.createElement('div');
+        block.classList.add('block');
+        const shortHash = (b.hash || '').toString().substring(0, 10);
+        const txCount = (b.transactions || []).length;
+        block.style.border = '1px solid rgba(255,255,255,0.05)';
+
+        block.innerHTML = `
+            <div class="block-header">Block #${b.index}</div>
+            <div class="block-hash">${shortHash}…</div>
+            <div class="block-footer">
+                <span>txs: ${txCount}</span>
+                <span>p:${b.proof}</span>
+            </div>
+        `;
+
+        block.addEventListener('click', () => {
+            // build and show modal with detailed block info
+            let overlay = document.getElementById('modal-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'modal-overlay';
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `
+                    <div class="modal">
+                        <button id="modal-close" style="float:right;margin-bottom:8px;">Close</button>
+                        <div id="modal-content"></div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click', (ev) => {
+                    if (ev.target === overlay || ev.target.id === 'modal-close') {
+                        overlay.style.display = 'none';
+                    }
+                });
+            }
+
+            const content = overlay.querySelector('#modal-content');
+            const txs = b.transactions || [];
+            const blockTime = b.timestamp ? new Date(b.timestamp * 1000) : null;
+            let html = `<h3>Block #${b.index} — ${b.hash}</h3>`;
+            html += `<div style="color:var(--text-secondary); margin-bottom:0.5rem;">Prev: ${b.previous_hash}</div>`;
+            html += `<div style="margin-bottom:0.25rem;">Proof: ${b.proof}</div>`;
+            html += `<div style="margin-bottom:0.5rem; color:var(--text-secondary);">Timestamp: ${blockTime ? blockTime.toLocaleString() : b.timestamp}</div>`;
+            html += `<div>Transactions (${txs.length}):</div>`;
+            html += `<div class="tx-list">`;
+            if (txs.length === 0) html += `<div style="color:var(--text-secondary);">No transactions</div>`;
+            txs.forEach((t, i) => {
+                let ttime = t.timestamp ? new Date(t.timestamp * 1000).toLocaleString() : '';
+                html += `<div class="tx-row"><strong>#${i+1}</strong> ${t.sender} → ${t.recipient} — ${t.amount}<br><small style="color:var(--text-secondary);">id:${t.id} time:${ttime} ratings:${t.ratings} status:${t.status} category:${t.category}</small></div>`;
+            });
+            html += `</div>`;
+            content.innerHTML = html;
+            overlay.style.display = 'flex';
+        });
+
+        container.appendChild(block);
+    });
+}
+
+window.onload = function () {
+    resetSimulation();
+    loadChain();
+};
+
+// --- MetaMask / Ethers.js integration (minimal) ---
+
+// ABI (minimal) for TxMetadata contract — keep in sync with `contracts/TxMetadata.sol`
+const TX_METADATA_ABI = [
+    "function recordTx(address _recipient, uint256 _amount, uint8 _rating, string calldata _category) external",
+    "event TxRecorded(uint256 indexed id, address indexed sender, address indexed recipient, uint256 amount, uint8 rating, string category)",
+    "function txCount() external view returns (uint256)",
+    "function getTx(uint256) external view returns (address,address,uint256,uint8,string,uint256)"
+];
+
+let provider = null;
+let signer = null;
+let contract = null;
+
+async function connectWallet() {
+    try {
+        if (!window.ethereum) throw new Error('MetaMask (window.ethereum) not found');
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        // request accounts
+        await provider.send('eth_requestAccounts', []);
+        signer = provider.getSigner();
+        const address = await signer.getAddress();
+        addLogEntry(`Wallet connected: ${address}`, 'success');
+        document.getElementById('connect-wallet-btn').textContent = address.slice(0,6) + '...' + address.slice(-4);
+
+        // If a contract address is present, attach to it
+        const addrInput = document.getElementById('contract-address').value.trim();
+        if (addrInput) attachContract(addrInput);
+
+        // listen for network/account changes
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length === 0) {
+                addLogEntry('Wallet disconnected', 'info');
+                document.getElementById('connect-wallet-btn').textContent = 'Connect Wallet';
+            } else {
+                document.getElementById('connect-wallet-btn').textContent = accounts[0].slice(0,6) + '...' + accounts[0].slice(-4);
+            }
+        });
+        window.ethereum.on('chainChanged', (chainId) => {
+            addLogEntry(`Network changed: ${chainId}`, 'info');
+        });
+    } catch (e) {
+        addLogEntry(`MetaMask connect error: ${e.message}`, 'error');
+        console.error(e);
+    }
+}
+
+function attachContract(address) {
+    try {
+        if (!provider) provider = new ethers.providers.Web3Provider(window.ethereum);
+        if (!signer) signer = provider.getSigner();
+        contract = new ethers.Contract(address, TX_METADATA_ABI, signer);
+        addLogEntry(`Contract attached: ${address}`, 'success');
+
+        // Listen to TxRecorded events, log them and refresh the on-chain viewer
+        contract.on('TxRecorded', (id, sender, recipient, amount, rating, category, event) => {
+            const ethAmount = ethers.utils.formatEther(amount);
+            addLogEntry(`On-chain TxRecorded id=${id.toString()} from=${sender} to=${recipient} amt=${ethAmount} rating=${rating} category=${category}`, 'info');
+            // refresh the on-chain list to include the latest record
+            setTimeout(() => fetchOnChainRecords(parseInt(document.getElementById('onchain-limit').value || '20')), 800);
+        });
+    } catch (e) {
+        addLogEntry(`Attach contract error: ${e.message}`, 'error');
+        console.error(e);
+    }
+}
+
+async function sendOnChainRecord() {
+    try {
+        if (!contract) {
+            const addr = document.getElementById('contract-address').value.trim();
+            if (!addr) throw new Error('Please enter the deployed contract address in the Contract address field');
+            attachContract(addr);
+        }
+
+        const recipient = document.getElementById('tx-recipient').value.trim();
+        // amount in ETH -> convert to wei
+        const amountEth = parseFloat(document.getElementById('tx-amount').value || '0');
+        const amountWei = ethers.utils.parseEther(amountEth.toString());
+        const rating = parseInt(document.getElementById('tx-rating').value || '5');
+        const category = document.getElementById('tx-category').value || '';
+
+        document.getElementById('bc-status').textContent = 'Sending on-chain...';
+        addLogEntry(`Sending on-chain record to ${recipient} amount=${amountEth} rating=${rating} category=${category}`, 'info');
+
+        const tx = await contract.recordTx(recipient, amountWei, rating, category);
+        addLogEntry(`Transaction submitted: ${tx.hash}`, 'info');
+        await tx.wait();
+        addLogEntry(`Transaction confirmed: ${tx.hash}`, 'success');
+        document.getElementById('bc-status').textContent = 'On-chain record sent';
+    } catch (e) {
+        addLogEntry(`On-chain error: ${e.message}`, 'error');
+        document.getElementById('bc-status').textContent = 'Error';
+        console.error(e);
+    }
+}
+
+// --- On-chain viewer: fetch and render records from the connected contract ---
+
+async function fetchOnChainRecords(limit = 20) {
+    try {
+        const listEl = document.getElementById('onchain-list');
+        listEl.innerHTML = '<div style="color:var(--text-secondary);">Loading...</div>';
+
+        // If user prefers indexer and it's available, use it
+        const useIndexer = document.getElementById('use-indexer') && document.getElementById('use-indexer').checked;
+        if (useIndexer) {
+            document.getElementById('onchain-status').textContent = 'Using indexer';
+            const rows = await fetchFromIndexer(limit);
+            renderOnChainRecords(rows);
+            return;
+        }
+
+        if (!contract) {
+            const addr = document.getElementById('contract-address').value.trim();
+            if (!addr) throw new Error('No contract attached. Enter contract address and connect wallet.');
+            attachContract(addr);
+            // small delay to allow attach
+            await new Promise(r => setTimeout(r, 400));
+        }
+
+        const countBN = await contract.txCount();
+        const count = (countBN && countBN.toNumber) ? countBN.toNumber() : Number(countBN);
+        if (count === 0) {
+            listEl.innerHTML = '<div style="color:var(--text-secondary);">No on-chain records found.</div>';
+            return;
+        }
+
+        const start = Math.max(0, count - limit);
+        const rows = [];
+        // fetch latest entries in descending order
+        for (let i = count - 1; i >= start; i--) {
+            try {
+                const t = await contract.getTx(i);
+                // t = (address, address, uint256, uint8, string, uint256)
+                const sender = t[0];
+                const recipient = t[1];
+                const amount = ethers.utils.formatEther(t[2]);
+                const rating = t[3];
+                const category = t[4];
+                const timestamp = (t[5] && t[5].toNumber) ? new Date(t[5].toNumber() * 1000) : new Date(Number(t[5]) * 1000);
+                rows.push({ id: i, sender, recipient, amount, rating, category, timestamp });
+            } catch (e) {
+                console.error('getTx error for index', i, e);
+            }
+        }
+
+        renderOnChainRecords(rows);
+        document.getElementById('onchain-status').textContent = `Loaded ${rows.length} / ${count}`;
+    } catch (e) {
+        addLogEntry(`On-chain fetch error: ${e.message}`, 'error');
+        const listEl = document.getElementById('onchain-list');
+        listEl.innerHTML = `<div style="color:var(--danger);">${e.message}</div>`;
+    }
+}
+
+function renderOnChainRecords(rows) {
+    const listEl = document.getElementById('onchain-list');
+    if (!rows || rows.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-secondary);">No records to display</div>';
+        return;
+    }
+    let html = '';
+    rows.forEach(r => {
+        html += `<div style="padding:0.5rem; border-bottom:1px solid rgba(255,255,255,0.03);">`;
+        html += `<div><strong>#${r.id}</strong> ${r.sender.slice(0,6)}... → ${r.recipient.slice(0,6)}... <span style="color:var(--text-secondary);">${r.amount} ETH</span></div>`;
+        html += `<div style="color:var(--text-secondary); font-size:0.85rem;">rating:${r.rating} category:${r.category} time:${r.timestamp.toLocaleString()}</div>`;
+        html += `</div>`;
+    });
+    listEl.innerHTML = html;
+}
+
+// bind refresh button
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('refresh-onchain-btn');
+    if (btn) btn.addEventListener('click', () => {
+        const lim = parseInt(document.getElementById('onchain-limit').value || '20');
+        fetchOnChainRecords(lim);
+    });
+});
+
+// Indexer support
+const INDEXER_BASE = (typeof INDEXER_BASE_URL !== 'undefined') ? INDEXER_BASE_URL : 'http://127.0.0.1:3001';
+
+async function fetchFromIndexer(limit = 20) {
+    try {
+        const res = await fetch(`${INDEXER_BASE}/records?limit=${limit}`);
+        if (!res.ok) throw new Error(`Indexer returned ${res.status}`);
+        const data = await res.json();
+        // data.rows are DB rows: id,event_id,sender,recipient,amount,rating,category,ts,tx_hash,block_number
+        const rows = (data.rows || []).map(r => ({
+            id: r.event_id || r.id,
+            sender: r.sender,
+            recipient: r.recipient,
+            amount: ethers.utils.formatEther(r.amount || '0'),
+            rating: r.rating,
+            category: r.category,
+            timestamp: new Date((r.ts || 0) * 1000),
+            tx_hash: r.tx_hash,
+            block_number: r.block_number
+        }));
+        document.getElementById('onchain-status').textContent = `Indexer: ${rows.length} loaded`;
+        return rows;
+    } catch (e) {
+        addLogEntry(`Indexer fetch error: ${e.message}`, 'error');
+        // fall back to chain fetch by throwing so caller can handle
+        throw e;
+    }
+}
+
+// --- Cloud Management Functions ---
+
+async function checkCloudStatus() {
+    try {
+        document.getElementById('cloud-status').textContent = 'Checking...';
+        addCloudLog('Checking cloud status...', 'info');
+        
+        const response = await fetch(`${API_BASE}/cloud/status`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('cloud-status').textContent = `Cloud: ${data.storage_provider}/${data.monitoring_provider}`;
+            addCloudLog(`Cloud Status: Storage=${data.storage_provider}, Monitoring=${data.monitoring_provider}`, 'success');
+            addCloudLog(`Bucket: ${data.storage_bucket}, Namespace: ${data.monitoring_namespace}`, 'info');
+        } else {
+            document.getElementById('cloud-status').textContent = 'Cloud Error';
+            addCloudLog(`Cloud status error: ${data.error}`, 'error');
+        }
+    } catch (e) {
+        document.getElementById('cloud-status').textContent = 'Cloud Unavailable';
+        addCloudLog(`Cloud status check failed: ${e.message}`, 'error');
+    }
+}
+
+async function uploadToCloud() {
+    try {
+        document.getElementById('upload-to-cloud-btn').disabled = true;
+        addCloudLog('Uploading data to cloud...', 'info');
+        
+        // Collect current simulation data
+        const simulationData = {
+            chart_data: {
+                labels: attackChart.data.labels.slice(),
+                values: attackChart.data.datasets[0].data.slice()
+            },
+            blockchain_data: await getBlockchainData(),
+            timestamp: new Date().toISOString(),
+            metadata: {
+                attack_power: document.getElementById('attack-power').value,
+                confirmation_blocks: document.getElementById('confirmation-blocks').value,
+                method: document.getElementById('simulation-method').value
+            }
+        };
+        
+        const filename = `simulation_${Date.now()}.json`;
+        
+        const response = await fetch(`${API_BASE}/cloud/storage/upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: filename,
+                content: simulationData
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            addCloudLog(`Upload successful: ${filename}`, 'success');
+        } else {
+            addCloudLog(`Upload failed: ${data.error}`, 'error');
+        }
+    } catch (e) {
+        addCloudLog(`Upload error: ${e.message}`, 'error');
+    } finally {
+        document.getElementById('upload-to-cloud-btn').disabled = false;
+    }
+}
+
+async function downloadFromCloud() {
+    try {
+        const filename = prompt('Enter filename to download:');
+        if (!filename) return;
+        
+        document.getElementById('download-from-cloud-btn').disabled = true;
+        addCloudLog(`Downloading ${filename}...`, 'info');
+        
+        const response = await fetch(`${API_BASE}/cloud/storage/download/${filename}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Create download link
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            
+            addCloudLog(`Download successful: ${filename}`, 'success');
+        } else {
+            addCloudLog(`Download failed: ${data.error}`, 'error');
+        }
+    } catch (e) {
+        addCloudLog(`Download error: ${e.message}`, 'error');
+    } finally {
+        document.getElementById('download-from-cloud-btn').disabled = false;
+    }
+}
+
+async function listCloudFiles() {
+    try {
+        document.getElementById('list-cloud-files-btn').disabled = true;
+        addCloudLog('Listing cloud files...', 'info');
+        
+        const response = await fetch(`${API_BASE}/cloud/storage/list`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            const files = data.files || [];
+            if (files.length === 0) {
+                addCloudLog('No files found in cloud storage', 'info');
+            } else {
+                addCloudLog(`Found ${files.length} files:`, 'success');
+                files.forEach(file => {
+                    addCloudLog(`  - ${file}`, 'info');
+                });
+            }
+        } else {
+            addCloudLog(`List failed: ${data.error}`, 'error');
+        }
+    } catch (e) {
+        addCloudLog(`List error: ${e.message}`, 'error');
+    } finally {
+        document.getElementById('list-cloud-files-btn').disabled = false;
+    }
+}
+
+async function getBlockchainData() {
+    try {
+        const response = await fetch(`${API_BASE}/chain`);
+        const data = await response.json();
+        return data;
+    } catch (e) {
+        addCloudLog(`Failed to get blockchain data: ${e.message}`, 'error');
+        return null;
+    }
+}
+
+function addCloudLog(message, type = 'info') {
+    const logContainer = document.getElementById('cloud-logs');
+    const entry = document.createElement('div');
+    entry.style.padding = '0.25rem 0';
+    entry.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+    
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    
+    let color = 'var(--text-secondary)';
+    if (type === 'success') color = 'var(--success)';
+    else if (type === 'error') color = 'var(--danger)';
+    else if (type === 'warning') color = 'var(--warning)';
+    
+    entry.innerHTML = `<span style="color:var(--text-secondary);">[${timeStr}]</span> <span style="color:${color};">${message}</span>`;
+    
+    logContainer.appendChild(entry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+    
+    // Keep only last 50 entries
+    while (logContainer.children.length > 50) {
+        logContainer.removeChild(logContainer.firstChild);
+    }
+}
+
+// Initialize cloud status check on page load
+window.addEventListener('load', function() {
+    setTimeout(checkCloudStatus, 2000); // Check after 2 seconds
+});
+
+// --- Real blockchain wiring ---
+    </script>
+
+</body>
+</html>

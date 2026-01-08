@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Hardhat node and indexer service
+  hardhat-node:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: blockchain-hardhat
+    ports:
+      - "8545:8545"  # Hardhat RPC
+      - "3001:3001"  # Indexer API
+    environment:
+      - INDEXER_RPC_URL=http://localhost:8545
+      - INDEXER_PORT=3001
+    volumes:
+      - hardhat_data:/app/hardhat_data
+      - indexer_data:/app/indexer
+    networks:
+      - blockchain-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Flask application
+  flask-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blockchain-flask
+    ports:
+      - "5000:5000"  # Flask app
+    environment:
+      - FLASK_APP=flaskk.py
+      - FLASK_ENV=production
+      - ETH_RPC_URL=http://hardhat-node:8545
+      # Cloud Storage Configuration
+      - CLOUD_STORAGE_PROVIDER=${CLOUD_STORAGE_PROVIDER:-local}
+      - CLOUD_STORAGE_BUCKET=${CLOUD_STORAGE_BUCKET:-blockchain-simulator}
+      - CLOUD_STORAGE_REGION=${CLOUD_STORAGE_REGION:-us-east-1}
+      # Cloud Monitoring Configuration
+      - CLOUD_MONITORING_PROVIDER=${CLOUD_MONITORING_PROVIDER:-local}
+      - CLOUD_MONITORING_NAMESPACE=${CLOUD_MONITORING_NAMESPACE:-BlockchainSimulator}
+      # AWS Configuration
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      # Azure Configuration
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING:-}
+      # Google Cloud Configuration
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-}
+    depends_on:
+      hardhat-node:
+        condition: service_healthy
+    networks:
+      - blockchain-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  hardhat_data:
+  indexer_data:
+
+networks:
+  blockchain-network:
+    driver: bridge

@@ -1,0 +1,16 @@
+{
+  "name": "30nmarks-blockchain",
+  "version": "0.1.0",
+  "description": "Ethereum-first project (30nmarks) - Hardhat scaffold for TxMetadata contract",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "chai": "^4.3.7",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.16.1"
+  }
+}
