@@ -1,6 +1,6 @@
 # 🚀 Blockchain 51% Attack Simulator
 
-A standalone blockchain simulation system focused on demonstrating and analyzing **51% attacks** using theoretical and practical blockchain concepts. This project runs **locally without Docker or cloud dependencies** and is suitable for academic, educational, and security research purposes.
+A standalone blockchain simulation system focused on demonstrating and analyzing **51% attacks** using theoretical and practical blockchain concepts. This project runs and is suitable for academic, educational, and security research purposes.
 
 ---
 
@@ -158,3 +158,4 @@ new_py_pro/
 MIT License
 
 ---
+
