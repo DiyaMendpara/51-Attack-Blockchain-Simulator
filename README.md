@@ -1,6 +1,6 @@
-# 🚀 Blockchain 51% Attack Simulator - Complete Docker Project
+# 🚀 Blockchain 51% Attack Simulator 
 
-A comprehensive blockchain simulation system with Docker containerization, smart contract integration, and real-time indexing capabilities.
+A comprehensive blockchain simulation system with smart contract integration, and real-time indexing capabilities.
 
 ## 🌟 Features
 
@@ -9,28 +9,14 @@ A comprehensive blockchain simulation system with Docker containerization, smart
 - **Smart Contract Integration**: Ethereum-compatible TxMetadata contract
 - **Real-time Indexing**: Event monitoring and data storage
 - **Web Interface**: Modern dark-themed UI with interactive visualizations
-- **Docker Deployment**: Complete containerized solution
 - **API Endpoints**: RESTful APIs for all operations
 - **Data Export**: CSV export for analysis and reporting
 
 ## 📋 Prerequisites
 
-### Required Software:
-
-1. **Docker Desktop** (Windows/Mac/Linux)
-   - Download from: https://www.docker.com/products/docker-desktop/
-   - Minimum version: 20.10
-
-2. **Docker Compose** (usually included with Docker Desktop)
-   - Minimum version: 2.0
-
-3. **Git** (for cloning the repository)
-   - Download from: https://git-scm.com/
-
 ### Optional (for advanced usage):
 - **MetaMask** browser extension for wallet integration
 - **Node.js** (if running without Docker)
-- **Python 3.11+** (if running without Docker)
 
 ## 🚀 Quick Start
 
@@ -53,15 +39,6 @@ start.bat
 # Make executable and run
 chmod +x start.sh
 ./start.sh
-```
-
-**Manual Docker Commands:**
-```bash
-# Build and start all services
-docker-compose up --build -d
-
-# Check service status
-docker-compose ps
 ```
 
 ### 3. Access the Application
@@ -180,13 +157,7 @@ curl http://localhost:3001/records
 
 ### Common Issues:
 
-#### 1. Docker Not Installed
-```bash
-# Install Docker Desktop from:
-# https://www.docker.com/products/docker-desktop/
-```
-
-#### 2. Port Conflicts
+#### 1. Port Conflicts
 ```bash
 # Check if ports are in use
 netstat -an | findstr :5000
@@ -196,7 +167,7 @@ netstat -an | findstr :3001
 # Modify ports in docker-compose.yml if needed
 ```
 
-#### 3. Services Not Starting
+#### 2. Services Not Starting
 ```bash
 # Check Docker status
 docker --version
@@ -368,5 +339,6 @@ This blockchain 51% attack simulator provides a complete, containerized solution
 - Educational purposes
 
 The Docker-based deployment ensures consistent, reproducible environments across different platforms, making it perfect for development, testing, and demonstration purposes.
+
 
 **Happy coding! 🚀**
